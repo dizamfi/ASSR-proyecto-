@@ -12,6 +12,20 @@ $session = Net::Telnet::Cisco->new(Host => "$ip");
 $session->login("$user", "$pass");
 
 
+# ejecutar algún comando desde el router 
+my @output = $session->cmd('show ip route');
+print @output;
+
+
+# ingresar a modo privilegiado en el router
+if ($session->enable(admin) ) {
+    @output = $session->cmd('show privilege');
+    print "My privileges: @output\n";
+} else {
+    warn "Can't enable: " . $session->errmsg;
+}
+
+
 ### get-request para sysUpTime ###
 
 use strict;
@@ -44,22 +58,18 @@ printf "The sysUpTime for host '%s' is %s.\n",
 
       $session->hostname(), $result->{$OID_sysUpTime};
 
+my $OID_sysContact = '1.3.6.1.2.1.1.4.0';
+
+my $result = $session->set_request(
+   -varbindlist => [ $OID_sysContact, OCTET_STRING, 'Help Desk x911' ],
+);
+
+printf "The sysContact for host '%s' was set to '%s'.\n",
+       $session->hostname(), $result->{$OID_sysContact};
+
 $session->close();
 
 exit 0;
 
 
-# ejecutar algún comando desde el router 
-my @output = $session->cmd('show ip route');
-print @output;
 
-
-# ingresar a modo privilegiado en el router
-if ($session->enable(admin) ) {
-    @output = $session->cmd('show privilege');
-    print "My privileges: @output\n";
-} else {
-    warn "Can't enable: " . $session->errmsg;
-}
-
-#$session->close;
